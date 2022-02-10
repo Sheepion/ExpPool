@@ -1,0 +1,22 @@
+name: ExpPool
+version: '${project.version}'
+main: com.sheepion.exppool.ExpPool
+api-version: 1.17
+prefix: ExpPool
+authors: [ Sheepion ]
+description: https://github.com/Sheepion
+commands:
+  exppool:
+    description: "ExpPool"
+    usage: /exppool
+permissions:
+  exppool.add:
+    description: "Add exp pool"
+    default: op
+  exppool.reload:
+    description: "Reload config"
+    default: op
+  exppool.maxtick.default:
+    description: "default max tick to stay in pool"
+    default: true
+

@@ -1,0 +1,22 @@
+#检测进入/离开经验池的时间间隔
+#在经验池内时获得经验的时间间隔
+#单位：tick    1秒等于20tick
+#数值类型为long
+interval: 40
+#拥有特定权限的人可以在经验池获取多久的时间
+#权限名称：exppool.maxtick.<permission>
+#数值类型为long
+max-ticks:
+  default: 200
+#各个世界的经验池
+#数值类型均为int
+pools:
+  world:
+    name1:
+      exp: 10
+      x1: 0
+      y1: 0
+      z1: 0
+      x2: 100
+      y2: 100
+      z2: 100
