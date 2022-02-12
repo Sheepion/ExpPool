@@ -13,11 +13,14 @@ import org.bukkit.persistence.PersistentDataType;
 
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.UUID;
 
 public class PoolManager implements Runnable {
     private final Player player;
     public static final HashSet<Pool> pools = new HashSet<>();
     public static final HashMap<String, Long> maxTicks = new HashMap<>();
+    //记录已经在经验池的玩家的uuid
+    public static final HashMap<UUID, Pool> inPool = new HashMap<>();
 
     public static void reload() {
         //重载pools
@@ -27,6 +30,16 @@ public class PoolManager implements Runnable {
         for (String worldName : poolSection.getKeys(false)) {
             ConfigurationSection worldSection = poolSection.getConfigurationSection(worldName);
             for (String poolName : worldSection.getKeys(false)) {
+                String join=null;
+                String leave=null;
+                if(worldSection.getString(poolName + ".join")!=null){
+                    join=worldSection.getString(poolName + ".join");
+                    join=join.replace("&","§");
+                }
+                if(worldSection.getString(poolName + ".leave")!=null){
+                    leave=worldSection.getString(poolName + ".leave");
+                    leave=leave.replace("&","§");
+                }
                 Pool pool = new Pool(worldName
                         , worldSection.getInt(poolName + ".x1")
                         , worldSection.getInt(poolName + ".y1")
@@ -34,7 +47,9 @@ public class PoolManager implements Runnable {
                         , worldSection.getInt(poolName + ".x2")
                         , worldSection.getInt(poolName + ".y2")
                         , worldSection.getInt(poolName + ".z2")
-                        , worldSection.getInt(poolName + ".exp"));
+                        , worldSection.getInt(poolName + ".exp")
+                        , join
+                        , leave);
                 pools.add(pool);
             }
         }
@@ -45,6 +60,7 @@ public class PoolManager implements Runnable {
             maxTicks.put(permission, maxTickSection.getLong(permission));
         }
         ExpPool.plugin.getLogger().info("重载经验池成功");
+        inPool.clear();
     }
 
     /**
@@ -55,7 +71,7 @@ public class PoolManager implements Runnable {
     public static long getMaxTicks(Player player) {
         long result = 0L;
         for (String permission : maxTicks.keySet()) {
-            if(player.hasPermission("exppool.maxtick." + permission)) {
+            if (player.hasPermission("exppool.maxtick." + permission)) {
                 result = Math.max(result, maxTicks.get(permission));
             }
         }
@@ -147,16 +163,29 @@ public class PoolManager implements Runnable {
     //给正在经验池内且没有超出tick上限的玩家产生经验
     @Override
     public void run() {
-        //判断是否在经验池内
+        //只接受已经在经验池内的玩家
         Pool pool = isInPool(player);
         if (pool == null) {
+            //判断是不是刚离开经验池
+            if (inPool.containsKey(player.getUniqueId())) {
+                if (inPool.get(player.getUniqueId()).leave() != null) {
+                    player.sendMessage(inPool.get(player.getUniqueId()).leave());
+                }
+                inPool.remove(player.getUniqueId());
+            }
             return;
+        }
+        //判断是不是刚进入经验池
+        if (!inPool.containsKey(player.getUniqueId())) {
+            if (pool.join() != null) {
+                player.sendMessage(pool.join());
+            }
+            inPool.put(player.getUniqueId(), pool);
         }
         //判断是否已经超出最大ticks
         if (getUsedTicks(player) >= getMaxTicks(player)) {
             return;
         }
-        player.sendMessage("经验池信息：" + pool.toString());
         //给玩家加上已使用的ticks
         addUsedTicks(player, ExpPool.plugin.getConfig().getLong("interval"));
         //生成经验

@@ -18,12 +18,14 @@ public class ExpPoolCommand implements CommandExecutor {
             return false;
         }
         switch (args[0]) {
-            case "add":
+            case "add" -> {
                 addExpPool((Player) sender, args);
                 return true;
-            case "reload":
+            }
+            case "reload" -> {
                 reload(sender);
                 return true;
+            }
         }
         return false;
     }
@@ -34,14 +36,22 @@ public class ExpPoolCommand implements CommandExecutor {
         }
     }
 
-    //用法/exppool add <name> <exp>
+    //用法/exppool add <name> <exp> <join> <leave>
     public void addExpPool(Player player, String[] args) {
-        if (args.length != 3) {
+        if (args.length < 3) {
             player.sendMessage(ChatColor.RED + "参数不足");
             return;
         }
         if (!player.isOp() || !player.hasPermission("exppool.add")) {
             return;
+        }
+        String join=null;
+        String leave=null;
+        if(args.length==4){
+            join=args[3];
+        }
+        if(args.length==5){
+            leave=args[4];
         }
         if (PointSelect.point1Select.containsKey(player.getUniqueId())
                 && PointSelect.point2Select.containsKey(player.getUniqueId())) {
@@ -55,6 +65,8 @@ public class ExpPoolCommand implements CommandExecutor {
             ExpPool.plugin.getConfig().set("pools." + world + "." + args[1] + ".x2", p2.getBlockX());
             ExpPool.plugin.getConfig().set("pools." + world + "." + args[1] + ".y2", p2.getBlockY());
             ExpPool.plugin.getConfig().set("pools." + world + "." + args[1] + ".z2", p2.getBlockZ());
+            ExpPool.plugin.getConfig().set("pools." + world + "." + args[1] + ".join", join);
+            ExpPool.plugin.getConfig().set("pools." + world + "." + args[1] + ".leave", leave);
             ExpPool.plugin.saveConfig();
             PointSelect.point1Select.remove(player.getUniqueId());
             PointSelect.point2Select.remove(player.getUniqueId());
@@ -62,7 +74,8 @@ public class ExpPoolCommand implements CommandExecutor {
             PoolManager.pools.add(new Pool(world
                     , p1.getBlockX(), p1.getBlockY(), p1.getBlockZ()
                     , p2.getBlockX(), p2.getBlockY(), p2.getBlockZ()
-                    , Integer.parseInt(args[2])));
+                    , Integer.parseInt(args[2])
+                    , args[3], args[4]));
         }
     }
 }
