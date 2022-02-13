@@ -25,7 +25,6 @@ public class PoolManager implements Runnable {
     public static void reload() {
         //重载pools
         pools.clear();
-        ExpPool.plugin.reloadConfig();
         ConfigurationSection poolSection = ExpPool.plugin.getConfig().getConfigurationSection("pools");
         for (String worldName : poolSection.getKeys(false)) {
             ConfigurationSection worldSection = poolSection.getConfigurationSection(worldName);

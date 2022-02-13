@@ -2,6 +2,7 @@ package com.sheepion.exppool.command;
 
 import com.sheepion.exppool.ExpPool;
 import com.sheepion.exppool.PoolManager;
+import com.sheepion.exppool.listener.EnterPoolListener;
 import com.sheepion.exppool.listener.PointSelect;
 import com.sheepion.exppool.listener.Pool;
 import org.bukkit.ChatColor;
@@ -32,7 +33,9 @@ public class ExpPoolCommand implements CommandExecutor {
 
     public void reload(CommandSender sender) {
         if (sender.isOp() || sender.hasPermission("exppool.reload")) {
+            ExpPool.plugin.reloadConfig();
             PoolManager.reload();
+            EnterPoolListener.reload();
         }
     }
 

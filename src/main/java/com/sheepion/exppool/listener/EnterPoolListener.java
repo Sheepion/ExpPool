@@ -15,10 +15,26 @@ import java.util.HashMap;
 import java.util.UUID;
 
 public class EnterPoolListener implements Listener {
+    //判断玩家是否在经验池并且给玩家经验的任务
     private static final HashMap<UUID, BukkitTask> poolTaskMap = new HashMap<>();
+    //用来判断玩家已用的ticks要不要刷新（判断是否已经到第二天）
     private static final HashMap<UUID, BukkitTask> tickUpdateTaskMap = new HashMap<>();
 
     public EnterPoolListener() {
+        reload();
+    }
+
+    public static void reload(){
+        //关闭原有的任务
+        for (UUID uuid : poolTaskMap.keySet()) {
+            poolTaskMap.get(uuid).cancel();
+        }
+        poolTaskMap.clear();
+        for (UUID uuid : tickUpdateTaskMap.keySet()) {
+            tickUpdateTaskMap.get(uuid).cancel();
+        }
+        tickUpdateTaskMap.clear();
+        //重新加载任务
         for (Player onlinePlayer : Bukkit.getServer().getOnlinePlayers()) {
             BukkitTask poolTask = ExpPool.plugin.getServer().getScheduler().runTaskTimer(
                     ExpPool.plugin, new PoolManager(onlinePlayer), 0L, ExpPool.plugin.getConfig().getLong("interval"));
@@ -28,7 +44,6 @@ public class EnterPoolListener implements Listener {
             tickUpdateTaskMap.put(onlinePlayer.getUniqueId(), tickUpdateTask);
         }
     }
-
     @EventHandler(ignoreCancelled = true)
     public void onPlayerJoin(PlayerJoinEvent event) {
         Player player = event.getPlayer();
